@@ -17,7 +17,7 @@ hdf5path = '/entry/data/data'
 
 def parsing_dozor(dozorr_file):
     global output_folder_for_post_processing_dozorr
-    print(dozorr_file)
+    #print(dozorr_file)
     NumOFline = re.search(r'\d+\.out',os.path.basename(dozorr_file)).group().split('.')[0]
     number_for_hdf5_file = NumOFline.zfill(6)
     output = os.path.join(output_folder_for_post_processing_dozorr, os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(dozorr_file)))) + '_' + os.path.basename(os.path.dirname(os.path.dirname(dozorr_file))))
@@ -84,7 +84,7 @@ def is_folder_updated(path, threshold_in_minutes = 2):
 
 
 def Monitor(current_folder_with_dozor_results):
-    #is_folder_updated(path)
+    global output_folder_for_post_processing_dozorr
     
     list_of_dozorr_files = []
     after = len(list_of_dozorr_files)
@@ -106,7 +106,9 @@ def Monitor(current_folder_with_dozor_results):
         list_of_dozorr_files =  glob.glob(f'{current_folder_with_dozor_results}/dozor/dozorr*out')
         if sorted(list_of_processed_dozorr_files) == sorted(list_of_dozorr_files) and not is_folder_updated(current_folder_with_dozor_results):
             break
-
+    
+    output = os.path.join(output_folder_for_post_processing_dozorr, os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(list_of_dozorr_files[0])))) + '_' + os.path.basename(os.path.dirname(os.path.dirname(list_of_dozorr_files[0]))))
+    return output
     
 if __name__ == '__main__':
     current_folder_with_dozor_results = sys.argv[1]
@@ -119,5 +121,10 @@ if __name__ == '__main__':
         if os.path.exists(current_folder_with_dozor_results):
             print('appeared')
             break
-    Monitor(current_folder_with_dozor_results)
     
+    folder_with_dozorr_results = Monitor(current_folder_with_dozor_results)
+    files_to_cat = glob.glob(f'{folder_with_dozorr_results}/*lst')
+    
+    command_line = "cat " + " ".join(files_to_cat) + " > joined.lst"
+        
+    os.system(command_line)
